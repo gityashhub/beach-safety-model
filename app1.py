@@ -1,4 +1,3 @@
-
 import streamlit as st
 import joblib
 import numpy as np
@@ -15,9 +14,7 @@ model = joblib.load('beach_safety_model (1).pkl')
 # Wind direction mapping
 wind_dir_map = {'N': 0, 'NE': 1, 'E': 2, 'SE': 3, 'S': 4, 'SW': 5, 'W': 6, 'NW': 7}
 
-
-API_KEY = st.secrets["OPENWEATHER_API_KEY"]  # ✅ Secure
-# API_KEY="74e8c4e70b76c8496ec8a3bdaac3a522"
+API_KEY = st.secrets["OPENWEATHER_API_KEY"]
 
 def deg_to_compass(deg):
     directions = list(wind_dir_map.keys())
@@ -67,35 +64,77 @@ def predict_beach_safety(data):
 
 st.set_page_config(page_title="Beach Safety Predictor", page_icon="🏖️", layout="wide")
 
-st.markdown("""
-    <style>
-    .block-container { padding-top: 1rem !important; }
-    .stApp {
-        background-image: url("https://images.unsplash.com/photo-1507525428034-b723cf961d3e");
-        background-size: cover;
-        background-position: center;
-        background-attachment: fixed;
-    }
-    .stApp::before {
-        content: "";
-        position: fixed;
-        top: 0;
-        left: 0;
-        height: 100%;
-        width: 100%;
-        background-color: rgba(255, 255, 255, 0.6);
-        z-index: -1;
-    }
-    .weather-box {
-        background-color: rgba(255, 255, 255, 0.9);
-        padding: 20px;
-        border-radius: 15px;
-        box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.2);
-        font-size: 16px;
-    }
-    header, footer {visibility: hidden;}
-    </style>
-""", unsafe_allow_html=True)
+# Detect theme and set appropriate colors
+def is_dark_theme():
+    return st.get_option("theme.base") == "dark"
+
+# Dynamic CSS based on theme
+def get_theme_styles():
+    if is_dark_theme():
+        return """
+            <style>
+            .block-container { padding-top: 1rem !important; }
+            .stApp {
+                background-image: url("https://images.unsplash.com/photo-1507525428034-b723cf961d3e");
+                background-size: cover;
+                background-position: center;
+                background-attachment: fixed;
+            }
+            .stApp::before {
+                content: "";
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100%;
+                width: 100%;
+                background-color: rgba(0, 0, 0, 0.7);
+                z-index: -1;
+            }
+            .weather-box {
+                background-color: rgba(40, 40, 40, 0.9);
+                padding: 20px;
+                border-radius: 15px;
+                box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.5);
+                font-size: 16px;
+                color: #ffffff;
+            }
+            header, footer {visibility: hidden;}
+            h1, h2, h3, h4, h5, h6 { color: #ffffff !important; }
+            .stNumberInput label, .stButton button { color: #ffffff !important; }
+            </style>
+        """
+    else:
+        return """
+            <style>
+            .block-container { padding-top: 1rem !important; }
+            .stApp {
+                background-image: url("https://images.unsplash.com/photo-1507525428034-b723cf961d3e");
+                background-size: cover;
+                background-position: center;
+                background-attachment: fixed;
+            }
+            .stApp::before {
+                content: "";
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100%;
+                width: 100%;
+                background-color: rgba(255, 255, 255, 0.6);
+                z-index: -1;
+            }
+            .weather-box {
+                background-color: rgba(255, 255, 255, 0.9);
+                padding: 20px;
+                border-radius: 15px;
+                box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.2);
+                font-size: 16px;
+            }
+            header, footer {visibility: hidden;}
+            </style>
+        """
+
+st.markdown(get_theme_styles(), unsafe_allow_html=True)
 
 st.markdown("""
     <div style='text-align: center;'>
@@ -116,24 +155,21 @@ if st.button("⚡ Get Beach Safety Prediction"):
         with st.spinner("Fetching weather data and predicting safety..."):
             data = fetch_weather_data(lat, lon)
 
-            st.markdown("""
+            st.markdown(f"""
                 <div class="weather-box">
                     <h4>🌤️ Current Weather Details</h4>
-                    <ul>
-                        <li>🌡️ <b>Temperature:</b> {:.1f} °C</li>
-                        <li>💧 <b>Humidity:</b> {}%</li>
-                        <li>💨 <b>Wind Speed:</b> {:.1f} km/h ({})</li>
-                        <li>🌊 <b>Wave Height:</b> {:.1f} m</li>
-                        <li>🌊 <b>Tide Level:</b> {:.1f} m</li>
-                        <li>👁 <b>Visibility:</b> {:.1f} km</li>
-                        <li>☔ <b>Rainfall:</b> {} mm</li>
-                        <li>☀ <b>UV Index:</b> {}</li>
+                    <ul style="color: {'#ffffff' if is_dark_theme() else '#000000'};">
+                        <li>🌡️ <b>Temperature:</b> {data['temperature']:.1f} °C</li>
+                        <li>💧 <b>Humidity:</b> {data['humidity']}%</li>
+                        <li>💨 <b>Wind Speed:</b> {data['wind_speed']:.1f} km/h ({data['wind_direction']})</li>
+                        <li>🌊 <b>Wave Height:</b> {data['wave_height']:.1f} m</li>
+                        <li>🌊 <b>Tide Level:</b> {data['tide_level']:.1f} m</li>
+                        <li>👁 <b>Visibility:</b> {data['visibility']:.1f} km</li>
+                        <li>☔ <b>Rainfall:</b> {data['rainfall']} mm</li>
+                        <li>☀ <b>UV Index:</b> {data['uv_index']}</li>
                     </ul>
                 </div>
-            """.format(
-                data['temperature'], data['humidity'], data['wind_speed'], data['wind_direction'],
-                data['wave_height'], data['tide_level'], data['visibility'], data['rainfall'], data['uv_index']
-            ), unsafe_allow_html=True)
+            """, unsafe_allow_html=True)
 
             prediction, confidence = predict_beach_safety(data)
             confidence_percent = int(confidence * 100)
@@ -143,39 +179,41 @@ if st.button("⚡ Get Beach Safety Prediction"):
             if prediction == 1:
                 st.markdown(f"""
                     <div style="
-                        background-color: #d4edda;
+                        background-color: {'#155724' if is_dark_theme() else '#d4edda'};
                         border-left: 6px solid #28a745;
                         padding: 1rem;
                         border-radius: 10px;
                         margin-bottom: 1rem;
-                        font-size: 20px;">
+                        font-size: 20px;
+                        color: {'#ffffff' if is_dark_theme() else '#000000'};">
                         ✅ <strong>Safe to Visit</strong><br>Enjoy your beach time! 🏖️😎
                     </div>
                 """, unsafe_allow_html=True)
             else:
                 st.markdown(f"""
                     <div style="
-                        background-color: #f8d7da;
+                        background-color: {'#721c24' if is_dark_theme() else '#f8d7da'};
                         border-left: 6px solid #dc3545;
                         padding: 1rem;
                         border-radius: 10px;
                         margin-bottom: 1rem;
-                        font-size: 20px;">
+                        font-size: 20px;
+                        color: {'#ffffff' if is_dark_theme() else '#000000'};">
                         ⚠️ <strong>Not Safe to Visit</strong><br>Better to stay away today. 🚫🌊
                     </div>
                 """, unsafe_allow_html=True)
 
             st.markdown(f"""
                 <div style="
-                    background-color: #f0f8ff;
+                    background-color: {'#1e2b3c' if is_dark_theme() else '#f0f8ff'};
                     padding: 1rem;
                     border-radius: 12px;
                     border-left: 6px solid {'#2ecc71' if confidence_percent >= 70 else '#f1c40f' if confidence_percent >= 40 else '#e74c3c'};
                     box-shadow: 0 4px 8px rgba(0,0,0,0.05);
                     margin-top: 20px;
-                    ">
+                    color: {'#ffffff' if is_dark_theme() else '#000000'};">
                     <h4 style="margin-bottom: 0.5rem;">🎯 Confidence Score</h4>
-                    <div style="background-color: #e0e0e0; border-radius: 20px; height: 20px; width: 100%; overflow: hidden;">
+                    <div style="background-color: {'#2d3748' if is_dark_theme() else '#e0e0e0'}; border-radius: 20px; height: 20px; width: 100%; overflow: hidden;">
                         <div style="
                             height: 100%;
                             width: {confidence_percent}%;
@@ -235,9 +273,11 @@ if show_eval:
                     height=500,
                     margin=dict(t=0, b=30, l=10, r=10),
                     legend=dict(orientation="v", x=1, y=1),
+                    paper_bgcolor='rgba(0,0,0,0)',
+                    plot_bgcolor='rgba(0,0,0,0)',
+                    font=dict(color='white' if is_dark_theme() else 'black')
                 )
                 st.plotly_chart(fig3, use_container_width=True)
 
     except Exception as e:
         st.warning(f"Could not evaluate model: {str(e)}")
-
