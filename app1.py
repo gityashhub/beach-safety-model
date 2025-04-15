@@ -261,7 +261,7 @@ if show_eval:
             st.markdown("### 🌐 Feature Importance")
             if hasattr(model, "feature_importances_"):
                 feature_names = ['temperature', 'humidity', 'wind_speed', 'wind_direction',
-                                 'wave_height', 'tide_level', 'visibility', 'rainfall', 'uv_index']
+                               'wave_height', 'tide_level', 'visibility', 'rainfall', 'uv_index']
                 importances = model.feature_importances_
                 fig3 = go.Figure(data=[go.Pie(
                     labels=feature_names,
@@ -269,13 +269,11 @@ if show_eval:
                     hole=0.2,
                     textinfo='label+percent'
                 )])
+                # Keep original Plotly style (removed theme-dependent settings)
                 fig3.update_layout(
                     height=500,
                     margin=dict(t=0, b=30, l=10, r=10),
-                    legend=dict(orientation="v", x=1, y=1),
-                    paper_bgcolor='rgba(0,0,0,0)',
-                    plot_bgcolor='rgba(0,0,0,0)',
-                    font=dict(color='white' if is_dark_theme() else 'black')
+                    legend=dict(orientation="v", x=1, y=1)
                 )
                 st.plotly_chart(fig3, use_container_width=True)
 
